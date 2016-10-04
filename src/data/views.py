@@ -1,68 +1,75 @@
 # coding=utf-8
 from rest_framework import views, status
-from .models import Transactions, Object
-from .serializers import TransactionsSerializer, TransactionsSerializerCreate, TransactionsSerializerState
-from django.shortcuts import get_object_or_404
+from .serializers import EmailSendSerializer, MessengerSendSerializer, SMSSendSerializer
 from rest_framework.response import Response
+from twilio.rest import TwilioRestClient
+import requests
 
 
-class TransactionDetails(views.APIView):
-
-    @staticmethod
-    def get(request, transaction_id):
-        serializer_response = TransactionsSerializer(get_object_or_404(Transactions.objects.all(), id=transaction_id))
-        return Response(serializer_response.data, status=status.HTTP_200_OK)
-
-
-class TransactionHistory(views.APIView):
-
-    @staticmethod
-    def get(request, identifier):
-        to_uuid = Transactions.objects.filter(to_uuid=identifier)
-        from_uuid = Transactions.objects.filter(from_uuid=identifier)
-
-        serializer_response_to_uuid = TransactionsSerializer(to_uuid, many=True)
-        serializer_response_from_uuid = TransactionsSerializer(from_uuid, many=True)
-
-        return Response({"to_uuid": serializer_response_to_uuid.data,
-                         "from_uuid": serializer_response_from_uuid.data},
-                        status=status.HTTP_200_OK)
-
-
-class CreateTransaction(views.APIView):
+class EmailSend(views.APIView):
 
     @staticmethod
     def post(request):
-        serializer = TransactionsSerializerCreate(data=request.data)
+        pass
+
+
+class MessengerSend(views.APIView):
+
+    @staticmethod
+    def post(request):
+        serializer = MessengerSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            obj = get_object_or_404(Object.objects.all(), id=serializer.validated_data['object_uuid'])
+            access_token = "EAANBzqOrcZAwBAHI674rcAIB2Eg1u7cZCJo31SwoUJXfRZBUMpp9I6ZC5GGIG1kCh6UrrdikxtwjZBt0ySUyZAS2aCSezwqKS54JFXtmmXiVj88RkXU231flecsXRWK5K2nvp655HkBh9iRfVzvcM1icnh4h2mrF5tZCcRVYgO4BAZDZD"
+            r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token=' + access_token, data={
+                                "recipient": {
+                                    "id": serializer.validated_data['profile_id']
+                                },
+                                "message":{
+                                    "text": serializer.validated_data['message']
+                                }
+                              })
 
-            trans = Transactions.objects.create(to_uuid=serializer.validated_data['to_uuid'],
-                                                from_uuid=serializer.validated_data['from_uuid'],
-                                                object=obj,
-                                                price=serializer.validated_data['price'],
-                                                state=serializer.validated_data['state'])
+            """
+            typical error:
+            {"error":{"message":"(#100) No matching user found","type":"OAuthException","code":100,"fbtrace_id":"HwK4\/gmHyzP"}}
+            """
 
-            serializer_response = TransactionsSerializer(trans)
-            return Response(serializer_response.data, status=status.HTTP_201_CREATED)
+            print r
+
+            return Response({'status': 'Good request',
+                             'message': 'Fake message sent!'},
+                            status=status.HTTP_200_OK)
 
         return Response({'status': 'Bad request',
                          'message': 'The data that you send is invalid!'},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class UpdateTransactionState(views.APIView):
+class SMSSend(views.APIView):
 
     @staticmethod
     def post(request):
-        serializer = TransactionsSerializerState(data=request.data)
+        serializer = SMSSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            trans = get_object_or_404(Transactions.objects.all(), id=serializer.validated_data['transaction_id'])
-            trans.state = serializer.validated_data['state']
-            serializer_response = TransactionsSerializer(trans)
-            return Response(serializer_response.data, status=status.HTTP_200_OK)
+            account_sid = "AC3698941d227f14fab41f091ce45893f4"
+            auth_token = "343dff7352d4775e4e9c32cc5df7afcc"
+
+            client = TwilioRestClient(account_sid, auth_token)
+
+            try:
+                message = client.messages.create(body=serializer.validated_data['message'],
+                                                 to=serializer.validated_data['number'],  # Replace with your phone number
+                                                 from_="+351308805125")  # Replace with your Twilio number
+
+                print(message.sid)
+            except Exception:
+                pass
+
+            return Response({'status': 'Good request',
+                             'message': 'Fake message sent!'},
+                            status=status.HTTP_200_OK)
 
         return Response({'status': 'Bad request',
                          'message': 'The data that you send is invalid!'},
