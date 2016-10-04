@@ -1,4 +1,6 @@
 # coding=utf-8
+from email.mime.text import MIMEText
+import smtplib
 from rest_framework import views, status
 from .serializers import EmailSendSerializer, MessengerSendSerializer, SMSSendSerializer
 from rest_framework.response import Response
@@ -10,7 +12,32 @@ class EmailSend(views.APIView):
 
     @staticmethod
     def post(request):
-        pass
+        serializer = EmailSendSerializer(data=request.data)
+
+        if serializer.is_valid():
+            # Create a text/plain message
+            msg = MIMEText(serializer.validated_data['message'])
+
+            # me == the sender's email address
+            # you == the recipient's email address
+            msg['Subject'] = 'Notification'
+            msg['From'] = "geral@transafe.pt"
+            msg['To'] = serializer.validated_data['email']
+
+            # Send the message via our own SMTP server, but don't include the
+            # envelope header.
+            s = smtplib.SMTP('localhost')
+            s.sendmail("geral@transafe.pt", [serializer.validated_data['email']], msg.as_string())
+            s.quit()
+
+            return Response({'status': 'Good request',
+                             'message': 'Fake message sent!'},
+                            status=status.HTTP_200_OK)
+
+        return Response({'status': 'Bad request',
+                         'message': 'The data that you send is invalid!'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class MessengerSend(views.APIView):
