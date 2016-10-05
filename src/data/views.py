@@ -15,20 +15,23 @@ class EmailSend(views.APIView):
         serializer = EmailSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            # Create a text/plain message
-            msg = MIMEText(serializer.validated_data['message'])
+            try:
+                # Create a text/plain message
+                msg = MIMEText(serializer.validated_data['message'])
 
-            # me == the sender's email address
-            # you == the recipient's email address
-            msg['Subject'] = 'Notification'
-            msg['From'] = "geral@transafe.pt"
-            msg['To'] = serializer.validated_data['email']
+                # me == the sender's email address
+                # you == the recipient's email address
+                msg['Subject'] = 'Notification'
+                msg['From'] = "geral@transafe.pt"
+                msg['To'] = serializer.validated_data['email']
 
-            # Send the message via our own SMTP server, but don't include the
-            # envelope header.
-            s = smtplib.SMTP('localhost')
-            s.sendmail("geral@transafe.pt", [serializer.validated_data['email']], msg.as_string())
-            s.quit()
+                # Send the message via our own SMTP server, but don't include the
+                # envelope header.
+                s = smtplib.SMTP('localhost')
+                s.sendmail("geral@transafe.pt", [serializer.validated_data['email']], msg.as_string())
+                s.quit()
+            except Exception:
+                pass
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
@@ -39,7 +42,6 @@ class EmailSend(views.APIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class MessengerSend(views.APIView):
 
     @staticmethod
@@ -47,22 +49,26 @@ class MessengerSend(views.APIView):
         serializer = MessengerSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            access_token = "EAANBzqOrcZAwBAHI674rcAIB2Eg1u7cZCJo31SwoUJXfRZBUMpp9I6ZC5GGIG1kCh6UrrdikxtwjZBt0ySUyZAS2aCSezwqKS54JFXtmmXiVj88RkXU231flecsXRWK5K2nvp655HkBh9iRfVzvcM1icnh4h2mrF5tZCcRVYgO4BAZDZD"
-            r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token=' + access_token, data={
-                                "recipient": {
-                                    "id": serializer.validated_data['profile_id']
-                                },
-                                "message":{
-                                    "text": serializer.validated_data['message']
-                                }
-                              })
+            try:
+                access_token = "EAANBzqOrcZAwBAHI674rcAIB2Eg1u7cZCJo31SwoUJXfRZBUMpp9I6ZC5GGIG1kCh6UrrdikxtwjZBt0ySUyZAS2aCSezwqKS54JFXtmmXiVj88RkXU231flecsXRWK5K2nvp655HkBh9iRfVzvcM1icnh4h2mrF5tZCcRVYgO4BAZDZD"
+                r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token=' + access_token, data={
+                                    "recipient": {
+                                        "id": serializer.validated_data['profile_id']
+                                    },
+                                    "message":{
+                                        "text": serializer.validated_data['message']
+                                    }
+                                  })
 
-            """
-            typical error:
-            {"error":{"message":"(#100) No matching user found","type":"OAuthException","code":100,"fbtrace_id":"HwK4\/gmHyzP"}}
-            """
+                """
+                140064409787860
+                typical error:
+                {"error":{"message":"(#100) No matching user found","type":"OAuthException","code":100,"fbtrace_id":"HwK4\/gmHyzP"}}
+                """
 
-            print r
+                print r
+            except Exception:
+                pass
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},

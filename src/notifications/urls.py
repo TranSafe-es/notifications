@@ -8,7 +8,7 @@ urlpatterns = [
                url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
                # pages
-               url(r'^api/v1/notifications/', include(dataurls)),
+               url(r'^api/v1/notification/', include(dataurls)),
 
                url('^.*$', TemplateView.as_view(template_name='index.html'), name='index')
                ]
