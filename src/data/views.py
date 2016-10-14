@@ -5,7 +5,7 @@ from rest_framework import views, status
 from .serializers import EmailSendSerializer, MessengerSendSerializer, SMSSendSerializer
 from rest_framework.response import Response
 from twilio.rest import TwilioRestClient
-import requests
+from pymessenger.bot import Bot
 
 
 class EmailSend(views.APIView):
@@ -49,26 +49,15 @@ class MessengerSend(views.APIView):
         serializer = MessengerSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            try:
-                access_token = "EAANBzqOrcZAwBAHI674rcAIB2Eg1u7cZCJo31SwoUJXfRZBUMpp9I6ZC5GGIG1kCh6UrrdikxtwjZBt0ySUyZAS2aCSezwqKS54JFXtmmXiVj88RkXU231flecsXRWK5K2nvp655HkBh9iRfVzvcM1icnh4h2mrF5tZCcRVYgO4BAZDZD"
-                r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token=' + access_token, data={
-                                    "recipient": {
-                                        "id": serializer.validated_data['profile_id']
-                                    },
-                                    "message":{
-                                        "text": serializer.validated_data['message']
-                                    }
-                                  })
+            bot = Bot("EAANBzqOrcZAwBAIumP0PgVDZCQ46fa6pEJR9qIOl41dZBxlzsuEZCBFP0nbMojeNE0WYolQkagA5nizZCg4ZAAH4o0hTDn2fZB1iZAtcfe9Guzif4AXcZCS5ZBITREoxQO0nokT6eLf8F48rWETuQ1QFySSOD0NRQtUGNlOXXQEftvxwZDZD")
+            bot.send_text_message("108978599563108", "OLA")
 
-                """
-                140064409787860
-                typical error:
-                {"error":{"message":"(#100) No matching user found","type":"OAuthException","code":100,"fbtrace_id":"HwK4\/gmHyzP"}}
-                """
+            """
+            140064409787860 | 108978599563108
 
-                print r
-            except Exception:
-                pass
+            typical error:
+            {"error":{"message":"(#100) No matching user found","type":"OAuthException","code":100,"fbtrace_id":"HwK4\/gmHyzP"}}
+            """
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
@@ -95,7 +84,6 @@ class SMSSend(views.APIView):
                 message = client.messages.create(body=serializer.validated_data['message'],
                                                  to=serializer.validated_data['number'],  # Replace with your phone number
                                                  from_="+351308805125")  # Replace with your Twilio number
-
                 print(message.sid)
             except Exception:
                 pass

@@ -9,7 +9,7 @@ class DataTestCase(TestCase):
 
     def test_objects(self):
         client = APIClient()
-
+        """
         # send email
         url = "/api/v1/notification/email/"
         data = {'email': 'pgrm.arcf@gmail.com',
@@ -25,11 +25,12 @@ class DataTestCase(TestCase):
         response = client.post(path=url, data=data)
         self.assertEqual(response.status_code, 200)
         # print response.data, response.status_code
-
+        """
         # send messenger
         url = "/api/v1/notification/messenger/"
         data = {'profile_id': '140064409787860',
                 'message': 'Ola!'}
         response = client.post(path=url, data=data)
         self.assertEqual(response.status_code, 200)
+        # print response.data
         # print response.data, response.status_code
