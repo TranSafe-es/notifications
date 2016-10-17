@@ -5,7 +5,7 @@ from rest_framework import views, status
 from .serializers import EmailSendSerializer, MessengerSendSerializer, SMSSendSerializer
 from rest_framework.response import Response
 from twilio.rest import TwilioRestClient
-from pymessenger.bot import Bot
+import requests
 
 
 class EmailSend(views.APIView):
@@ -49,11 +49,21 @@ class MessengerSend(views.APIView):
         serializer = MessengerSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            bot = Bot("EAANBzqOrcZAwBAIumP0PgVDZCQ46fa6pEJR9qIOl41dZBxlzsuEZCBFP0nbMojeNE0WYolQkagA5nizZCg4ZAAH4o0hTDn2fZB1iZAtcfe9Guzif4AXcZCS5ZBITREoxQO0nokT6eLf8F48rWETuQ1QFySSOD0NRQtUGNlOXXQEftvxwZDZD")
-            bot.send_text_message("108978599563108", "OLA")
+            access_token = "EAANBzqOrcZAwBANugFBOpt8hZAdno4l2N3bJY9Y5LYd9156NP1ZAm09rnKZByWpVrPzur9pEGoOJjMEuvZCqhOCv4m07wNGA18ZBve0V94r8XLCWfSvGIiKi91r24YbruvPHX5ZB8GtnZBFCzwrXYMqEaaNwfRSNV2WgksBFD0it0AZDZD"
+            r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token=' + access_token, json={
+                "recipient": {
+                    "phone_number": serializer.validated_data['phone_number']
+                },
+                "message": {
+                    "text": serializer.validated_data['message']
+                }
+            })
+
+            print r.text
 
             """
-            140064409787860 | 108978599563108
+            140064409787860 | 108978599563108 | 189834438093482
+            "recipient_id":"1147077425382001",
 
             typical error:
             {"error":{"message":"(#100) No matching user found","type":"OAuthException","code":100,"fbtrace_id":"HwK4\/gmHyzP"}}

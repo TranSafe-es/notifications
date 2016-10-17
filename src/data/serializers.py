@@ -45,11 +45,11 @@ class MessengerSendSerializer(serializers.BaseSerializer):
         pass
 
     def to_internal_value(self, data):
-        profile_id = data.get('profile_id')
+        phone_number = data.get('phone_number')
         message = data.get('message')
 
         # Perform the data validation.
-        if not profile_id:
+        if not phone_number:
             raise ValidationError({
                 'message': 'This field is required.'
             })
@@ -61,7 +61,7 @@ class MessengerSendSerializer(serializers.BaseSerializer):
         # Return the validated values. This will be available as
         # the `.validated_data` property.
         return {
-            'profile_id': profile_id,
+            'phone_number': phone_number,
             'message': message
         }
 
@@ -77,11 +77,11 @@ class SMSSendSerializer(serializers.BaseSerializer):
         pass
 
     def to_internal_value(self, data):
-        number = data.get('number')
+        phone_number = data.get('phone_number')
         message = data.get('message')
 
         # Perform the data validation.
-        if not number:
+        if not phone_number:
             raise ValidationError({
                 'message': 'This field is required.'
             })
@@ -93,6 +93,6 @@ class SMSSendSerializer(serializers.BaseSerializer):
         # Return the validated values. This will be available as
         # the `.validated_data` property.
         return {
-            'number': number,
+            'phone_number': phone_number,
             'message': message
         }

@@ -44,7 +44,7 @@ paths:
       summary: Create a notification, destination which can be different, for this endpoint will be SMS
       description: This endpoint will send an SMS for an especific NUMBER
       parameters:
-        - name: number
+        - name: phone_number
           in: query
           description: The number
           required: true
@@ -65,12 +65,12 @@ paths:
             $ref: "#/definitions/Error"
   /notification/messenger/:
     post:
-      summary: Create a notification, destination which can be different, for this endpoint will be SMS
-      description: This endpoint will send an SMS for an especific NUMBER
+      summary: Create a notification, destination which can be different, for this endpoint will be Messenger notification
+      description: This endpoint will send a message for an especific FB Account/ NUMBER
       parameters:
-        - name: profile_id
+        - name: phone_number
           in: query
-          description: The email
+          description: The user phone number
           required: true
           type: string
         - name: message

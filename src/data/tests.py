@@ -20,7 +20,7 @@ class DataTestCase(TestCase):
 
         # send sms
         url = "/api/v1/notification/sms/"
-        data = {'number': '+351914316075',
+        data = {'phone_number': '+351914316075',
                 'message': 'Ola!'}
         response = client.post(path=url, data=data)
         self.assertEqual(response.status_code, 200)
@@ -28,8 +28,8 @@ class DataTestCase(TestCase):
         """
         # send messenger
         url = "/api/v1/notification/messenger/"
-        data = {'profile_id': '140064409787860',
-                'message': 'Ola!'}
+        data = {'phone_number': '+351914316075',
+                'message': 'A sua encomenda chegou!'}
         response = client.post(path=url, data=data)
         self.assertEqual(response.status_code, 200)
         # print response.data
