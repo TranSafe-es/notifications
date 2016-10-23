@@ -22,13 +22,17 @@ class EmailSend(views.APIView):
                 # me == the sender's email address
                 # you == the recipient's email address
                 msg['Subject'] = 'Notification'
-                msg['From'] = "geral@transafe.pt"
+                msg['From'] = "transafe@rafaelferreira.pt"
                 msg['To'] = serializer.validated_data['email']
 
                 # Send the message via our own SMTP server, but don't include the
                 # envelope header.
-                s = smtplib.SMTP('localhost')
-                s.sendmail("geral@transafe.pt", [serializer.validated_data['email']], msg.as_string())
+                s = smtplib.SMTP("smtp.zoho.com", 465)
+                s.ehlo()
+                s.starttls()
+                s.ehlo()
+                s.login("transafe@rafaelferreira.pt", "transafe2016")
+                s.sendmail("transafe@rafaelferreira.pt", [serializer.validated_data['email']], msg.as_string())
                 s.quit()
             except Exception:
                 pass
