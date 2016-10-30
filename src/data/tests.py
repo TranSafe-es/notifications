@@ -11,7 +11,7 @@ class DataTestCase(TestCase):
         client = APIClient()
         # send email
         url = "/api/v1/notification/email/"
-        data = {'email': 'pgrm.arcf@gmail.com',
+        data = {'email': 'mail@rafaelferreira.pt',
                 'message': 'Ola!'}
         response = client.post(path=url, data=data)
         print response.data, response.status_code
