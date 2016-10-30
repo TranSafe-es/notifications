@@ -89,8 +89,8 @@ class MessengerSend(views.APIView):
         serializer = MessengerSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            process_thread = threading.Thread(target=send_messenger, args=[serializer.validated_data['message'],
-                                                                           serializer.validated_data['phone_number']])
+            process_thread = threading.Thread(target=send_messenger, args=[serializer.validated_data['phone_number'],
+                                                                           serializer.validated_data['message']])
             process_thread.daemon = True
             process_thread.start()
 
@@ -110,8 +110,8 @@ class SMSSend(views.APIView):
         serializer = SMSSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            process_thread = threading.Thread(target=send_sms, args=[serializer.validated_data['message'],
-                                                                     serializer.validated_data['phone_number']])
+            process_thread = threading.Thread(target=send_sms, args=[serializer.validated_data['phone_number'],
+                                                                     serializer.validated_data['message']])
             process_thread.daemon = True
             process_thread.start()
 
