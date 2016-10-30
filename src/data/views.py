@@ -6,6 +6,58 @@ from .serializers import EmailSendSerializer, MessengerSendSerializer, SMSSendSe
 from rest_framework.response import Response
 from twilio.rest import TwilioRestClient
 import requests
+import thread
+
+
+def send_mail(message, email):
+    try:
+        # Create a text/plain message
+        msg = MIMEText(message)
+
+        # me == the sender's email address
+        # you == the recipient's email address
+        msg['Subject'] = 'Notification'
+        msg['From'] = "transafe@rafaelferreira.pt"
+        msg['To'] = email
+
+        # Send the message via our own SMTP server, but don't include the
+        # envelope header.
+        s = smtplib.SMTP("smtp.zoho.com", 465)
+        s.ehlo()
+        s.starttls()
+        s.ehlo()
+        s.login("transafe@rafaelferreira.pt", "transafe2016")
+        s.sendmail("transafe@rafaelferreira.pt", [email], msg.as_string())
+        s.quit()
+    except Exception:
+        pass
+
+
+def send_messenger(phone_number, message):
+    access_token = "EAANBzqOrcZAwBANugFBOpt8hZAdno4l2N3bJY9Y5LYd9156NP1ZAm09rnKZByWpVrPzur9pEGoOJjMEuvZCqhOCv4m07wNGA18ZBve0V94r8XLCWfSvGIiKi91r24YbruvPHX5ZB8GtnZBFCzwrXYMqEaaNwfRSNV2WgksBFD0it0AZDZD"
+    r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token=' + access_token, json={
+        "recipient": {
+            "phone_number": phone_number
+        },
+        "message": {
+            "text": message
+        }
+    })
+
+
+def send_sms(phone_number, message):
+    account_sid = "AC3698941d227f14fab41f091ce45893f4"
+    auth_token = "343dff7352d4775e4e9c32cc5df7afcc"
+
+    client = TwilioRestClient(account_sid, auth_token)
+
+    try:
+        message = client.messages.create(body=message,
+                                         to=phone_number,  # Replace with your phone number
+                                         from_="+351308805125")  # Replace with your Twilio number
+        print(message.sid)
+    except Exception:
+        pass
 
 
 class EmailSend(views.APIView):
@@ -15,27 +67,8 @@ class EmailSend(views.APIView):
         serializer = EmailSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            try:
-                # Create a text/plain message
-                msg = MIMEText(serializer.validated_data['message'])
-
-                # me == the sender's email address
-                # you == the recipient's email address
-                msg['Subject'] = 'Notification'
-                msg['From'] = "transafe@rafaelferreira.pt"
-                msg['To'] = serializer.validated_data['email']
-
-                # Send the message via our own SMTP server, but don't include the
-                # envelope header.
-                s = smtplib.SMTP("smtp.zoho.com", 465)
-                s.ehlo()
-                s.starttls()
-                s.ehlo()
-                s.login("transafe@rafaelferreira.pt", "transafe2016")
-                s.sendmail("transafe@rafaelferreira.pt", [serializer.validated_data['email']], msg.as_string())
-                s.quit()
-            except Exception:
-                pass
+            thread.start_new_thread(send_mail,
+                                    (serializer.validated_data['message'], serializer.validated_data['email']))
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
@@ -53,25 +86,8 @@ class MessengerSend(views.APIView):
         serializer = MessengerSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            access_token = "EAANBzqOrcZAwBANugFBOpt8hZAdno4l2N3bJY9Y5LYd9156NP1ZAm09rnKZByWpVrPzur9pEGoOJjMEuvZCqhOCv4m07wNGA18ZBve0V94r8XLCWfSvGIiKi91r24YbruvPHX5ZB8GtnZBFCzwrXYMqEaaNwfRSNV2WgksBFD0it0AZDZD"
-            r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token=' + access_token, json={
-                "recipient": {
-                    "phone_number": serializer.validated_data['phone_number']
-                },
-                "message": {
-                    "text": serializer.validated_data['message']
-                }
-            })
-
-            print r.text
-
-            """
-            140064409787860 | 108978599563108 | 189834438093482
-            "recipient_id":"1147077425382001",
-
-            typical error:
-            {"error":{"message":"(#100) No matching user found","type":"OAuthException","code":100,"fbtrace_id":"HwK4\/gmHyzP"}}
-            """
+            thread.start_new_thread(send_messenger,
+                                    (serializer.validated_data['message'], serializer.validated_data['phone_number']))
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
@@ -89,18 +105,8 @@ class SMSSend(views.APIView):
         serializer = SMSSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            account_sid = "AC3698941d227f14fab41f091ce45893f4"
-            auth_token = "343dff7352d4775e4e9c32cc5df7afcc"
-
-            client = TwilioRestClient(account_sid, auth_token)
-
-            try:
-                message = client.messages.create(body=serializer.validated_data['message'],
-                                                 to=serializer.validated_data['number'],  # Replace with your phone number
-                                                 from_="+351308805125")  # Replace with your Twilio number
-                print(message.sid)
-            except Exception:
-                pass
+            thread.start_new_thread(send_sms,
+                                    (serializer.validated_data['message'], serializer.validated_data['phone_number']))
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
