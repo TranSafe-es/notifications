@@ -7,29 +7,28 @@ from .serializers import EmailSendSerializer, MessengerSendSerializer, SMSSendSe
 from rest_framework.response import Response
 from twilio.rest import TwilioRestClient
 import requests
-import thread
 
 
 def send_mail(message, email):
     try:
-        # Create a text/plain message
+
+        # Define to/from
+        sender = 'transafe@rafaelferreira.pt'
+        recipient = email
+
+        # Create message
         msg = MIMEText(message)
+        msg['Subject'] = "Notification"
+        msg['From'] = sender
+        msg['To'] = recipient
 
-        # me == the sender's email address
-        # you == the recipient's email address
-        msg['Subject'] = 'Notification'
-        msg['From'] = "transafe@rafaelferreira.pt"
-        msg['To'] = email
+        # Create server object with SSL option
+        server = smtplib.SMTP_SSL('smtp.zoho.com', 465)
 
-        # Send the message via our own SMTP server, but don't include the
-        # envelope header.
-        s = smtplib.SMTP("smtp.zoho.com", 465)
-        s.ehlo()
-        s.starttls()
-        s.ehlo()
-        s.login("transafe@rafaelferreira.pt", "transafe2016")
-        s.sendmail("transafe@rafaelferreira.pt", [email], msg.as_string())
-        s.quit()
+        # Perform operations via server
+        server.login("transafe@rafaelferreira.pt", "transafe2016")
+        server.sendmail(sender, [recipient], msg.as_string())
+        server.quit()
     except Exception:
         pass
 
