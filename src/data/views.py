@@ -1,4 +1,5 @@
 # coding=utf-8
+import threading
 from email.mime.text import MIMEText
 import smtplib
 from rest_framework import views, status
@@ -67,8 +68,9 @@ class EmailSend(views.APIView):
         serializer = EmailSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            thread.start_new_thread(send_mail,
-                                    (serializer.validated_data['message'], serializer.validated_data['email']))
+            process_thread = threading.Thread(target=send_mail, args=[serializer.validated_data['message'],
+                                                                      serializer.validated_data['email']])
+            process_thread.start()
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
@@ -86,8 +88,9 @@ class MessengerSend(views.APIView):
         serializer = MessengerSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            thread.start_new_thread(send_messenger,
-                                    (serializer.validated_data['message'], serializer.validated_data['phone_number']))
+            process_thread = threading.Thread(target=send_messenger, args=[serializer.validated_data['message'],
+                                                                           serializer.validated_data['phone_number']]) 
+            process_thread.start()
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
@@ -105,8 +108,9 @@ class SMSSend(views.APIView):
         serializer = SMSSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            thread.start_new_thread(send_sms,
-                                    (serializer.validated_data['message'], serializer.validated_data['phone_number']))
+            process_thread = threading.Thread(target=send_sms, args=[serializer.validated_data['message'],
+                                                                     serializer.validated_data['phone_number']])
+            process_thread.start()
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
