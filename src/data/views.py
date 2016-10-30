@@ -70,6 +70,7 @@ class EmailSend(views.APIView):
         if serializer.is_valid():
             process_thread = threading.Thread(target=send_mail, args=[serializer.validated_data['message'],
                                                                       serializer.validated_data['email']])
+            process_thread.daemon = True
             process_thread.start()
 
             return Response({'status': 'Good request',
@@ -89,7 +90,8 @@ class MessengerSend(views.APIView):
 
         if serializer.is_valid():
             process_thread = threading.Thread(target=send_messenger, args=[serializer.validated_data['message'],
-                                                                           serializer.validated_data['phone_number']]) 
+                                                                           serializer.validated_data['phone_number']])
+            process_thread.daemon = True
             process_thread.start()
 
             return Response({'status': 'Good request',
@@ -110,6 +112,7 @@ class SMSSend(views.APIView):
         if serializer.is_valid():
             process_thread = threading.Thread(target=send_sms, args=[serializer.validated_data['message'],
                                                                      serializer.validated_data['phone_number']])
+            process_thread.daemon = True
             process_thread.start()
 
             return Response({'status': 'Good request',
