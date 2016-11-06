@@ -7,8 +7,10 @@ from .serializers import EmailSendSerializer, MessengerSendSerializer, SMSSendSe
 from rest_framework.response import Response
 from twilio.rest import TwilioRestClient
 import requests
+from celery import shared_task
 
 
+@shared_task
 def send_mail(message, email):
     try:
 
@@ -33,6 +35,7 @@ def send_mail(message, email):
         pass
 
 
+@shared_task
 def send_messenger(phone_number, message):
     access_token = "EAANBzqOrcZAwBANugFBOpt8hZAdno4l2N3bJY9Y5LYd9156NP1ZAm09rnKZByWpVrPzur9pEGoOJjMEuvZCqhOCv4m07wNGA18ZBve0V94r8XLCWfSvGIiKi91r24YbruvPHX5ZB8GtnZBFCzwrXYMqEaaNwfRSNV2WgksBFD0it0AZDZD"
     r = requests.post('https://graph.facebook.com/v2.6/me/messages?access_token=' + access_token, json={
@@ -45,6 +48,7 @@ def send_messenger(phone_number, message):
     })
 
 
+@shared_task
 def send_sms(phone_number, message):
     account_sid = "AC3698941d227f14fab41f091ce45893f4"
     auth_token = "343dff7352d4775e4e9c32cc5df7afcc"
@@ -67,10 +71,8 @@ class EmailSend(views.APIView):
         serializer = EmailSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            process_thread = threading.Thread(target=send_mail, args=[serializer.validated_data['message'],
-                                                                      serializer.validated_data['email']])
-            process_thread.daemon = True
-            process_thread.start()
+            send_mail.apply_async(args=[serializer.validated_data['message'],
+                                        serializer.validated_data['email']])
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
@@ -88,10 +90,8 @@ class MessengerSend(views.APIView):
         serializer = MessengerSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            process_thread = threading.Thread(target=send_messenger, args=[serializer.validated_data['phone_number'],
-                                                                           serializer.validated_data['message']])
-            process_thread.daemon = True
-            process_thread.start()
+            send_messenger.apply_async(args=[serializer.validated_data['phone_number'],
+                                             serializer.validated_data['message']])
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
@@ -109,10 +109,8 @@ class SMSSend(views.APIView):
         serializer = SMSSendSerializer(data=request.data)
 
         if serializer.is_valid():
-            process_thread = threading.Thread(target=send_sms, args=[serializer.validated_data['phone_number'],
-                                                                     serializer.validated_data['message']])
-            process_thread.daemon = True
-            process_thread.start()
+            send_sms.apply_async(args=[serializer.validated_data['phone_number'],
+                                       serializer.validated_data['message']])
 
             return Response({'status': 'Good request',
                              'message': 'Fake message sent!'},
